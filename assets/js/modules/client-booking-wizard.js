@@ -82,31 +82,43 @@
                  this.fetchAndRenderSlots(this.state.selectedDate);
             });
 
-            // Evento para selección de mascota (para clientes con mascotas vinculadas)
-            $('.pet-selector-item').on('click', (e) => {
+            // Evento para selección de mascota con UX mejorada y accesibilidad
+            this.dom.wizardContainer.on('click keydown', '.pet-item', (e) => {
                 const petItem = $(e.currentTarget);
-                $('.pet-selector-item').removeClass('selected');
-                petItem.addClass('selected');
 
-                // Guardar datos de la mascota seleccionada
-                this.state.selectedPet = {
-                    id: petItem.data('pet-id'),
-                    name: petItem.data('pet-name'),
-                    species: petItem.data('pet-species'),
-                    breed: petItem.data('pet-breed')
-                };
+                // Ignorar si no tiene permisos
+                if (petItem.data('permission') !== true) {
+                    // Prevenir cualquier acción por defecto para la tecla espacio
+                    if (e.type === 'keydown' && e.key === ' ') {
+                        e.preventDefault();
+                    }
+                    return;
+                }
 
-                // Llenar automáticamente los campos del formulario con los datos de la mascota
-                $('#va-pet-name').val(this.state.selectedPet.name || '');
-                $('#va-pet-species').val(this.state.selectedPet.species ?
-                    this.state.selectedPet.species.charAt(0).toUpperCase() + this.state.selectedPet.species.slice(1) : '');
-                $('#va-pet-breed').val(this.state.selectedPet.breed || '');
-                // Asegurar que el género de la mascota también se propaga
-                if ( typeof this.state.selectedPet.gender !== 'undefined' ) {
-                    $('#va-pet-gender').val(this.state.selectedPet.gender);
-                } else if ( typeof this.state.selectedPet.species !== 'undefined' ) {
-                    // Si no existe gender, dejar 'unknown' por defecto
-                    $('#va-pet-gender').val('unknown');
+                // Procesar solo en click o al presionar Enter/Espacio
+                if (e.type === 'click' || (e.type === 'keydown' && (e.key === 'Enter' || e.key === ' '))) {
+                    e.preventDefault(); // Prevenir scroll en Espacio
+
+                    $('.pet-item').removeClass('selected');
+                    petItem.addClass('selected');
+
+                    // Guardar datos de la mascota seleccionada
+                    this.state.selectedPet = {
+                        id: petItem.data('pet-id'),
+                        name: petItem.data('pet-name'),
+                        species: petItem.data('pet-species'),
+                        breed: petItem.data('pet-breed'),
+                        gender: petItem.data('pet-gender')
+                    };
+
+                    // Llenar automáticamente los campos del formulario (si existen)
+                    $('#va-pet-name').val(this.state.selectedPet.name || '');
+                    $('#va-pet-species').val(this.state.selectedPet.species ?
+                        this.state.selectedPet.species.charAt(0).toUpperCase() + this.state.selectedPet.species.slice(1) : '');
+                    $('#va-pet-breed').val(this.state.selectedPet.breed || '');
+                    $('#va-pet-gender').val(this.state.selectedPet.gender || 'unknown');
+
+                    console.log('Mascota seleccionada:', this.state.selectedPet.name);
                 }
             });
         },

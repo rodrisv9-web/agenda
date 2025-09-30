@@ -65,7 +65,11 @@ class Veterinalia_Appointment_Shortcodes {
         // --- Encolar assets directamente aquÃ­ para garantizar la carga ---
         wp_enqueue_style('va-dashboard-base-styles', VA_PLUGIN_URL . 'assets/css/dashboard-base.css', [], VA_PLUGIN_VERSION);
         wp_enqueue_style('va-dashboard-components-styles', VA_PLUGIN_URL . 'assets/css/dashboard-components.css', ['va-dashboard-base-styles'], VA_PLUGIN_VERSION);
-        wp_enqueue_style('va-client-booking-styles', VA_PLUGIN_URL . 'assets/css/client-booking.css', ['va-dashboard-components-styles'], VA_PLUGIN_VERSION);
+
+        // Estilos y scripts para el wizard con cache busting
+        $css_file_path = VA_PLUGIN_DIR . 'assets/css/client-booking.css';
+        $css_version = file_exists($css_file_path) ? filemtime($css_file_path) : VA_PLUGIN_VERSION;
+        wp_enqueue_style('va-client-booking-styles', VA_PLUGIN_URL . 'assets/css/client-booking.css', ['va-dashboard-components-styles'], $css_version);
 
         // Asegurar que va-api-client estÃ© cargado
         wp_enqueue_script('va-api-client', VA_PLUGIN_URL . 'assets/js/api-client.js', ['jquery'], VA_PLUGIN_VERSION, true);
@@ -76,7 +80,9 @@ class Veterinalia_Appointment_Shortcodes {
             'nonce'    => wp_create_nonce('va_appointment_nonce'),
         ));
 
-        wp_enqueue_script('va-client-booking-wizard', VA_PLUGIN_URL . 'assets/js/modules/client-booking-wizard.js', ['jquery', 'va-api-client'], VA_PLUGIN_VERSION, true);
+        $js_file_path = VA_PLUGIN_DIR . 'assets/js/modules/client-booking-wizard.js';
+        $js_version = file_exists($js_file_path) ? filemtime($js_file_path) : VA_PLUGIN_VERSION;
+        wp_enqueue_script('va-client-booking-wizard', VA_PLUGIN_URL . 'assets/js/modules/client-booking-wizard.js', ['jquery', 'va-api-client'], $js_version, true);
 
         // 1. Intenta obtener el ID desde los atributos del shortcode.
         $atts = shortcode_atts(['professional_id' => 0], $atts);
