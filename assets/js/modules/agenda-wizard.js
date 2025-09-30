@@ -68,7 +68,7 @@ const AgendaWizard = (function ($) {
             handleUnlockPet(petId);
         });
 
-        dom.modal.on('click', '.select-pet-btn', function() {
+        dom.modal.on('click', '.pet-item.selectable', function() {
             const petId = $(this).data('pet-id');
             handlePetSelection(petId);
         });
@@ -362,16 +362,16 @@ const AgendaWizard = (function ($) {
         const petsHtml = petsArray.map(pet => {
             const hasAccess = (typeof pet.has_access !== 'undefined') ? (parseInt(pet.has_access) === 1) : professionalAccess.includes(pet.pet_id);
             return `
-                <div class="pet-item ${!hasAccess ? 'locked' : ''}" data-pet-id="${pet.pet_id}">
+                <div class="pet-item ${hasAccess ? 'selectable' : 'locked'}" data-pet-id="${pet.pet_id}">
                     <div>
                         <strong>${pet.name}</strong> (${pet.species})
                     </div>
-                    ${hasAccess ?
-                        `<button class="btn btn-primary select-pet-btn" data-pet-id="${pet.pet_id}">Seleccionar</button>` :
+                    ${!hasAccess ?
                         `<div class="unlock-section">
                             <input type="text" id="share-code-${pet.pet_id}" class="form-input" placeholder="Share-Code">
                             <button class="btn btn-secondary unlock-btn" data-pet-id="${pet.pet_id}">Desbloquear</button>
-                        </div>`
+                        </div>` :
+                        ''
                     }
                 </div>
             `;

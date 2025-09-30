@@ -2114,14 +2114,20 @@
     transition: all 0.2s ease;
 }
 
-.pet-item:hover {
+.pet-item.selectable {
+    cursor: pointer;
+}
+
+.pet-item.selectable:hover {
     border-color: var(--color-primary);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
 }
 
 .pet-item.locked {
     background-color: #f9fafb;
     border-color: #d1d5db;
+    cursor: not-allowed;
 }
 
 .pet-item .unlock-section {
