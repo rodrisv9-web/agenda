@@ -82,29 +82,40 @@ if (!defined('ABSPATH')) { exit; }
                     <h4>Selecciona tu Mascota</h4>
                     <p>Elige la mascota para la que quieres agendar la cita:</p>
                     <div class="client-pet-selector">
-                        <?php foreach ($client_pets as $pet): ?>
-                            <div class="pet-selector-item"
+                        <?php
+                        $pet_index = 0;
+                        foreach ($client_pets as $pet):
+                            // Simulación de permisos: la segunda mascota no tendrá permisos
+                            $has_permission = ($pet_index !== 1);
+                        ?>
+                            <div class="pet-item"
+                                 role="button"
+                                 tabindex="0"
+                                 aria-label="Seleccionar mascota: <?php echo esc_attr($pet->name); ?> (<?php echo esc_attr($pet->species); ?>)"
                                  data-pet-id="<?php echo esc_attr($pet->pet_id); ?>"
                                  data-pet-name="<?php echo esc_attr($pet->name); ?>"
                                  data-pet-species="<?php echo esc_attr($pet->species); ?>"
                                  data-pet-breed="<?php echo esc_attr($pet->breed ?: ''); ?>"
-                                 data-pet-gender="<?php echo esc_attr($pet->gender ?: 'unknown'); ?>">
-                                <div class="pet-selector-avatar">
+                                 data-pet-gender="<?php echo esc_attr($pet->gender ?: 'unknown'); ?>"
+                                 data-permission="<?php echo $has_permission ? 'true' : 'false'; ?>"
+                                 aria-disabled="<?php echo !$has_permission; ?>">
+                                <div class="pet-item-avatar">
                                     <img src="https://placehold.co/50x50/EBF8FF/3182CE?text=<?php echo urlencode(substr($pet->name, 0, 2)); ?>"
                                          alt="Mascota <?php echo esc_attr($pet->name); ?>">
                                 </div>
-                                <div class="pet-selector-info">
-                                    <div class="pet-selector-name"><?php echo esc_html($pet->name); ?></div>
-                                    <div class="pet-selector-details">
+                                <div class="pet-item-info">
+                                    <div class="pet-item-name"><?php echo esc_html($pet->name); ?></div>
+                                    <div class="pet-item-details">
                                         <?php echo esc_html(ucfirst($pet->species)); ?>
                                         <?php if($pet->breed): ?> - <?php echo esc_html($pet->breed); ?><?php endif; ?>
                                     </div>
                                 </div>
-                                <div class="pet-selector-indicator">
-                                    <i class="fas fa-check"></i>
-                                </div>
+                                <!-- El indicador de check/lock se gestionará con CSS (:after) -->
                             </div>
-                        <?php endforeach; ?>
+                        <?php
+                        $pet_index++;
+                        endforeach;
+                        ?>
                     </div>
                 </div>
             <?php endif; ?>

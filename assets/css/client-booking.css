@@ -79,95 +79,141 @@
 }
 
 /* ===============================================
-   ESTILOS PARA CLIENTES CON MASCOTAS (INLINE)
+   ESTILOS PARA SELECCIÓN DE MASCOTAS (UX MEJORADA)
    =============================================== */
 
 .client-pet-selector {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 1rem;
     margin-top: 1rem;
 }
 
-.pet-selector-item {
+.pet-item {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.75rem;
-    border: 2px solid var(--color-border);
-    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    background: var(--color-white, #fff);
+    transition: all 0.2s ease-in-out;
+    overflow: hidden; /* Para contener el pseudo-elemento del check */
+    min-height: 48px; /* Altura mínima táctil */
+}
+
+/* Estado por defecto: Disponible */
+.pet-item[data-permission="true"] {
+    border: 2px solid #22c55e; /* Verde */
     cursor: pointer;
-    transition: all 0.3s ease;
-    background-color: var(--color-white);
 }
 
-.pet-selector-item:hover {
-    border-color: var(--color-primary);
-    background-color: var(--color-primary-light);
+/* Hover y Active para item disponible */
+.pet-item[data-permission="true"]:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    background-color: #f0fdf4; /* Verde muy claro */
+    transform: translateY(-2px);
 }
 
-.pet-selector-item.selected {
-    border-color: var(--color-primary);
-    background-color: var(--color-primary-light);
+/* Foco del teclado para accesibilidad */
+.pet-item[data-permission="true"]:focus-visible,
+.pet-item[data-permission="true"]:focus {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
 }
 
-.pet-selector-avatar {
-    width: 50px;
-    height: 50px;
+/* Estado Seleccionado */
+.pet-item[data-permission="true"].selected {
+    border-color: #16a34a; /* Verde más intenso */
+    background-color: #f0fdf4;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+}
+
+/* Icono de Check para seleccionado (usando pseudo-elementos) */
+.pet-item[data-permission="true"].selected::after {
+    content: '✔';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 24px;
+    height: 24px;
+    background-color: #16a34a;
+    color: white;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom-left-radius: 0.5rem;
+}
+
+/* Estado Sin Permisos */
+.pet-item[data-permission="false"] {
+    border: 2px solid var(--color-border, #d1d5db);
+    cursor: not-allowed;
+    opacity: 0.7;
+    background-color: #f9fafb;
+}
+
+/* Tooltip e icono para Sin Permisos */
+.pet-item[data-permission="false"]::before {
+    content: '🔒'; /* Icono de candado */
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 16px;
+    color: #6b7280;
+}
+
+/* Tooltip con texto al hacer hover en deshabilitado */
+.pet-item[data-permission="false"]:hover::after {
+    content: 'Sin permisos para agendar';
+    position: absolute;
+    bottom: 105%; /* Posicionar arriba del item */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 10;
+    pointer-events: none; /* Para no interferir con el cursor */
+}
+
+/* Estilos del contenido interno (renombrados de .pet-selector-* a .pet-item-*) */
+.pet-item-avatar {
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     overflow: hidden;
     flex-shrink: 0;
+    border: 2px solid #e5e7eb;
 }
 
-.pet-selector-avatar img {
+.pet-item-avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.pet-selector-info {
+.pet-item-info {
     flex-grow: 1;
+    overflow: hidden; /* Para que ellipsis funcione */
 }
 
-.pet-selector-name {
+.pet-item-name {
     font-weight: 600;
-    color: var(--color-text-dark);
-    margin: 0;
-    font-size: 0.95rem;
+    color: #1f2937;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.pet-selector-details {
-    font-size: 0.85rem;
-    color: var(--color-text-gray);
-    margin: 0.1rem 0 0;
-}
-
-.pet-selector-indicator {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    border: 2px solid var(--color-border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    background-color: var(--color-white);
-}
-
-.pet-selector-item.selected .pet-selector-indicator {
-    background-color: var(--color-primary);
-    border-color: var(--color-primary);
-    color: var(--color-white);
-}
-
-.pet-selector-indicator i {
-    font-size: 10px;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.pet-selector-item.selected .pet-selector-indicator i {
-    opacity: 1;
+.pet-item-details {
+    font-size: 0.875rem;
+    color: #6b7280;
 }
 
 /* Ocultar campos de mascota cuando ya están disponibles */
