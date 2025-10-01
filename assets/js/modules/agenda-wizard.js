@@ -299,15 +299,20 @@ const AgendaWizard = (function ($) {
 
         const resultsHtml = results.map(client => {
             const hasAccess = parseInt(client.has_access) === 1;
+            const availabilityText = hasAccess ? '✅ Mis Pacientes' : '🔒 Red Veterinalia';
+            const availabilityClass = hasAccess ? 'tag-mine' : 'tag-network';
+
             return `
                 <div class="result-item" data-client-id="${client.client_id}" data-client-name="${client.name || ''}" data-client-email="${client.email || ''}">
-                    <div>
-                        <strong>${client.name}</strong><br>
+                    <div class="result-item-header">
+                        <span class="result-item-tag ${availabilityClass}">${availabilityText}</span>
+                    </div>
+                    <div class="result-item-body">
+                        <strong>${client.name}</strong>
+                    </div>
+                    <div class="result-item-footer">
                         <small>${client.email}</small>
                     </div>
-                    <span class="result-item-tag ${hasAccess ? 'tag-mine' : 'tag-network'}">
-                        ${hasAccess ? '✅ Mis Pacientes' : '🔒 Red Veterinalia'}
-                    </span>
                 </div>
             `;
         }).join('');
