@@ -68,23 +68,39 @@ const AgendaWizard = (function ($) {
             handleUnlockPet(petId);
         });
 
-        dom.modal.on('click', '.select-pet-btn', function() {
+        dom.modal.on('click', '.pet-item.selectable', function() {
             const petId = $(this).data('pet-id');
             handlePetSelection(petId);
         });
         
         // <-- INICIO DE NUEVOS EVENTOS: Proyecto Chocovainilla - Paso 1.5/1.6 -->
-        dom.modal.on('click', '.category-tab', function() {
-            const categoryId = $(this).data('category-id');
-            dom.modal.find('.category-tab').removeClass('active');
-            $(this).addClass('active');
-            dom.modal.find('.service-list').removeClass('active');
-            dom.modal.find(`#service-list-${categoryId}`).addClass('active');
+        dom.modal.on('change', '#wizard-category-select', function() {
+            const categoryId = $(this).val();
+            const serviceSelect = dom.modal.find('#wizard-service-select');
+
+            if (categoryId) {
+                const selectedCategory = state.servicesAndCategories.find(cat => cat.category_id == categoryId);
+                if (selectedCategory && selectedCategory.services.length > 0) {
+                    let serviceOptions = '<option value="">-- Selecciona un servicio --</option>';
+                    selectedCategory.services.forEach(service => {
+                        serviceOptions += `<option value="${service.service_id}" data-duration="${service.duration}">${service.name} ($${parseFloat(service.price).toFixed(2)})</option>`;
+                    });
+                    serviceSelect.html(serviceOptions).prop('disabled', false);
+                } else {
+                    serviceSelect.html('<option value="">-- No hay servicios en esta categoría --</option>').prop('disabled', true);
+                }
+            } else {
+                serviceSelect.html('<option value="">-- Primero elige una categoría --</option>').prop('disabled', true);
+            }
         });
 
-        dom.modal.on('click', '.select-service-btn', function() {
-            const serviceItem = $(this).closest('.service-item');
-            handleServiceSelection(serviceItem.data('service-id'), serviceItem.data('duration'));
+        dom.modal.on('change', '#wizard-service-select', function() {
+            const selectedOption = $(this).find('option:selected');
+            const serviceId = selectedOption.val();
+            if (serviceId) {
+                const duration = selectedOption.data('duration');
+                handleServiceSelection(serviceId, duration);
+            }
         });
 
         dom.calendarHeader.on('click', '#prev-month-btn', () => changeMonth(-1));
@@ -283,15 +299,31 @@ const AgendaWizard = (function ($) {
 
         const resultsHtml = results.map(client => {
             const hasAccess = parseInt(client.has_access) === 1;
+            const availabilityText = hasAccess ? '✅ Mis Pacientes' : '🔒 Red Veterinalia';
+            const availabilityClass = hasAccess ? 'tag-mine' : 'tag-network';
+
+            // Logic to generate initials
+            const name = client.name || '';
+            const words = name.split(' ').filter(Boolean);
+            let initials = 'CL';
+            if (words.length >= 2) {
+                initials = (words[0][0] + words[1][0]).toUpperCase();
+            } else if (words.length === 1 && words[0].length >= 1) {
+                initials = words[0].substring(0, 2).toUpperCase();
+            }
+
             return `
                 <div class="result-item" data-client-id="${client.client_id}" data-client-name="${client.name || ''}" data-client-email="${client.email || ''}">
-                    <div>
-                        <strong>${client.name}</strong><br>
-                        <small>${client.email}</small>
+                    <div class="result-item-avatar-wrapper">
+                        <div class="result-item-avatar">${initials}</div>
                     </div>
-                    <span class="result-item-tag ${hasAccess ? 'tag-mine' : 'tag-network'}">
-                        ${hasAccess ? '✅ Mis Pacientes' : '🔒 Red Veterinalia'}
-                    </span>
+                    <div class="result-item-info-wrapper">
+                        <div class="result-item-name"><strong>${name}</strong></div>
+                        <div class="result-item-email"><small>${client.email}</small></div>
+                        <div class="result-item-availability">
+                             <span class="result-item-tag ${availabilityClass}">${availabilityText}</span>
+                        </div>
+                    </div>
                 </div>
             `;
         }).join('');
@@ -362,16 +394,16 @@ const AgendaWizard = (function ($) {
         const petsHtml = petsArray.map(pet => {
             const hasAccess = (typeof pet.has_access !== 'undefined') ? (parseInt(pet.has_access) === 1) : professionalAccess.includes(pet.pet_id);
             return `
-                <div class="pet-item ${!hasAccess ? 'locked' : ''}" data-pet-id="${pet.pet_id}">
+                <div class="pet-item ${hasAccess ? 'selectable' : 'locked'}" data-pet-id="${pet.pet_id}">
                     <div>
                         <strong>${pet.name}</strong> (${pet.species})
                     </div>
-                    ${hasAccess ?
-                        `<button class="btn btn-primary select-pet-btn" data-pet-id="${pet.pet_id}">Seleccionar</button>` :
+                    ${!hasAccess ?
                         `<div class="unlock-section">
                             <input type="text" id="share-code-${pet.pet_id}" class="form-input" placeholder="Share-Code">
                             <button class="btn btn-secondary unlock-btn" data-pet-id="${pet.pet_id}">Desbloquear</button>
-                        </div>`
+                        </div>` :
+                        ''
                     }
                 </div>
             `;
@@ -446,28 +478,28 @@ const AgendaWizard = (function ($) {
             return;
         }
 
-        const categoriesHtml = state.servicesAndCategories.map((cat, index) => `
-            <div class="category-tab ${index === 0 ? 'active' : ''}" data-category-id="${cat.category_id}">
-                <span>${cat.name}</span>
-            </div>
-        `).join('');
-        
-        const servicesHtml = state.servicesAndCategories.map((cat, index) => `
-            <div class="service-list ${index === 0 ? 'active' : ''}" id="service-list-${cat.category_id}">
-                ${cat.services.map(service => `
-                    <div class="service-item" data-service-id="${service.service_id}" data-duration="${service.duration}">
-                        <div>
-                            <div class="service-name">${service.name}</div>
-                            <div class="service-details">${service.duration} min - $${parseFloat(service.price).toFixed(2)}</div>
-                        </div>
-                        <button class="btn btn-primary select-service-btn">Elegir</button>
-                    </div>
-                `).join('') || '<p>No hay servicios en esta categoría.</p>'}
-            </div>
+        const categoryOptions = state.servicesAndCategories.map(cat => `
+            <option value="${cat.category_id}">${cat.name}</option>
         `).join('');
 
-        dom.modal.find('.category-tabs').html(categoriesHtml);
-        dom.modal.find('.service-list-content').html(servicesHtml);
+        const dropdownsHtml = `
+            <div class="form-group">
+                <label for="wizard-category-select" class="form-label">Categoría</label>
+                <select id="wizard-category-select" class="form-input">
+                    <option value="">-- Selecciona una categoría --</option>
+                    ${categoryOptions}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="wizard-service-select" class="form-label">Servicio</label>
+                <select id="wizard-service-select" class="form-input" disabled>
+                    <option value="">-- Primero elige una categoría --</option>
+                </select>
+            </div>
+        `;
+
+        dom.modal.find('.category-tabs').html(dropdownsHtml);
+        dom.modal.find('.service-list-content').html('').hide();
     }
 
     function handleServiceSelection(serviceId, duration) {
