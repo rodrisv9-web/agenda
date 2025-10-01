@@ -302,16 +302,27 @@ const AgendaWizard = (function ($) {
             const availabilityText = hasAccess ? '✅ Mis Pacientes' : '🔒 Red Veterinalia';
             const availabilityClass = hasAccess ? 'tag-mine' : 'tag-network';
 
+            // Logic to generate initials
+            const name = client.name || '';
+            const words = name.split(' ').filter(Boolean);
+            let initials = 'CL';
+            if (words.length >= 2) {
+                initials = (words[0][0] + words[1][0]).toUpperCase();
+            } else if (words.length === 1 && words[0].length >= 1) {
+                initials = words[0].substring(0, 2).toUpperCase();
+            }
+
             return `
                 <div class="result-item" data-client-id="${client.client_id}" data-client-name="${client.name || ''}" data-client-email="${client.email || ''}">
-                    <div class="result-item-header">
-                        <span class="result-item-tag ${availabilityClass}">${availabilityText}</span>
+                    <div class="result-item-avatar-wrapper">
+                        <div class="result-item-avatar">${initials}</div>
                     </div>
-                    <div class="result-item-body">
-                        <strong>${client.name}</strong>
-                    </div>
-                    <div class="result-item-footer">
-                        <small>${client.email}</small>
+                    <div class="result-item-info-wrapper">
+                        <div class="result-item-name"><strong>${name}</strong></div>
+                        <div class="result-item-email"><small>${client.email}</small></div>
+                        <div class="result-item-availability">
+                             <span class="result-item-tag ${availabilityClass}">${availabilityText}</span>
+                        </div>
                     </div>
                 </div>
             `;
